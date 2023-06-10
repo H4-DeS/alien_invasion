@@ -7,11 +7,15 @@ class Bullet(Sprite):
         self.screen = ai_game.screen
         self.settings = ai_game.settings
         self.color = self.settings.bullet_color
-        self.rect = pygame.Rect((0,0),(self.settings.bullet_width_width,self.settings.bullet_height))
+        self.rect = pygame.Rect((0, 0), (self.settings.bullet_width, self.settings.bullet_height))
         self.rect.midtop = ai_game.ship.rect.midtop
         self.y = float(self.rect.y)
 
-    def update_position(self):
+    def __str__(self):
+        return f"\nbullet size: {self.settings.bullet_width} x {self.settings.bullet_height} \n " \
+               f"bullet speed: {self.settings.bullet_speed}\n" \
+               f"bullet color: {self.settings.bullet_width} x {self.settings.bullet_height}"
+    def update(self):
         self.y -= self.settings.bullet_speed
         self.rect.y = self.y
 

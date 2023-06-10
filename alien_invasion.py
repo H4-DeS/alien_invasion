@@ -1,22 +1,24 @@
 import sys
-
 import pygame
 
 from settings import Settings
 from ship import Ship
+from bullet import Bullet
+from alien import Alien
 
 class AlienInvasion:
     def __init__(self):
         '''Inicializa o jogo e cria recursos do jogo'''
         pygame.init()
         self.settings = Settings()
-        self.screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
-        self.settings.screen_width = self.screen.get_width()
-        self.settings.screen_height = self.screen.get_height()
-        self.fullscreen_flag = True
+        self.screen = pygame.display.set_mode((self.settings.screen_width, self.settings.screen_height))
+        self.fullscreen_flag = False
         self.clock = pygame.time.Clock()
         self.bg_color = self.settings.bg_color
         self.ship = Ship(self)
+        self.bullets = pygame.sprite.Group()
+        self.aliens = pygame.sprite.Group()
+        self._create_fleet()
         pygame.display.set_caption("Alien Invasion")
 
     def run_game(self):
@@ -24,14 +26,46 @@ class AlienInvasion:
         while True:
             self._check_events()
             self._update_screen()
+            self._update_bullets()
             self.ship.position_update()
             self.clock.tick(60)
+    def _create_fleet(self):
+        #Cria a frota alienígena
+        alien = Alien(self)
+        current_x = alien.rect.x
+        current_y = alien.rect.y
+        while current_y < (self.settings.screen_height - 3*alien.rect.y):
+            while current_x < (self.settings.screen_width - 2*alien.rect.x):
+                self._create_alien(current_x, current_y)
+                current_x += 2*alien.rect.x
+            current_y += 2*alien.rect.y
+            current_x = alien.rect.x
+
+    def _create_alien(self, current_x, current_y):
+        new_alien = Alien(self)
+        new_alien.x = current_x
+        new_alien.rect.x = current_x
+        new_alien.rect.y = current_y
+        self.aliens.add(new_alien)
 
     def _update_screen(self):
         self.screen.fill(self.bg_color)
-        # Deixa a tela desenhada mais recente visível
+        #Desenha o projétil
+        for bullet in self.bullets.sprites():
+            bullet.draw_bullet()
+        self._update_bullets()
+        #Desenha a Spacefighter
         self.ship.blitme()
+        self.aliens.draw(self.screen)
+        # Deixa a tela desenhada mais recente visível
         pygame.display.flip()
+
+    def _update_bullets(self):
+        self.bullets.update()
+        # Remove o projétil qunaod antigir o limite da tela
+        for bullet in self.bullets.copy():
+            if bullet.rect.bottom <= 0:
+                self.bullets.remove(bullet)
 
     def _check_events(self):
         # Observa eventos de teclado e mouse
@@ -68,6 +102,10 @@ class AlienInvasion:
             self.settings.screen_width = self.screen.get_width()
             self.settings.screen_height = self.screen.get_height()
             self.ship = Ship(self)
+        elif event.key == pygame.K_SPACE:
+            if len(self.bullets) < self.settings.bullet_allowed:
+                self.new_bullet = Bullet(self)
+                self.bullets.add(self.new_bullet)
 
 
 if __name__ == '__main__':
