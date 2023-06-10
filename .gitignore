@@ -1,0 +1,5 @@
+#Diretórios e arquivos gerados pela IDE
+.idea/*
+__pycache__/*
+venv/*
+
