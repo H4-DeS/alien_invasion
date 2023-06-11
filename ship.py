@@ -29,5 +29,8 @@ class Ship:
             self.x -= self.settings.ship_speed
         elif self.moving_right and self.rect.right < self.settings.screen_width:
             self.x += self.settings.ship_speed
-
         self.rect.x = self.x
+
+    def _center_ship(self):
+        self.rect.midbottom = self.screen_rect.midbottom
+        self.x = float(self.rect.x)

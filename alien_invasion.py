@@ -1,16 +1,20 @@
 import sys
+from time import sleep
+
 import pygame
 
 from settings import Settings
+from game_stats import GameStats
 from ship import Ship
 from bullet import Bullet
 from alien import Alien
 
 class AlienInvasion:
     def __init__(self):
-        '''Inicializa o jogo e cria recursos do jogo'''
+        'Inicializa o jogo e cria recursos do jogo'
         pygame.init()
         self.settings = Settings()
+        self.stats = GameStats(self)
         self.screen = pygame.display.set_mode((self.settings.screen_width, self.settings.screen_height))
         self.fullscreen_flag = False
         self.clock = pygame.time.Clock()
@@ -51,9 +55,27 @@ class AlienInvasion:
         self.aliens.add(new_alien)
 
     def _aliens_update(self):
-        self.alien.update()
-        collision = pygame.sprite.spritecollideany(self.ship, self.aliens, True, True)
+        self.aliens.update()
+        if pygame.sprite.spritecollideany(self.ship, self.aliens):
+            self._ship_hit()
+        self._check_aliens_bottom()
 
+    def _ship_hit(self):
+            #Decrementa o número de naves disponíveis
+            self.stats.ships_left -= 1
+            #Limpa a tela de projéteis e aliens restantes
+            self.bullets.empty()
+            self.aliens.empty()
+            #Recria nova frota alien
+            self._create_fleet()
+            self.ship._center_ship()
+            sleep(0.5)
+
+    def _check_aliens_bottom(self):
+        for alien in self.aliens.sprites():
+            if alien.rect.bottom >= self.settings.screen_height:
+                self._ship_hit()
+                break
     def _check_edge(self):
         for alien in self.aliens.sprites():
             if alien.check_edge():
@@ -61,6 +83,7 @@ class AlienInvasion:
                 break
 
     def _change_alien_direction(self):
+        'Muda a direção da frota alienígena'
         for alien in self.aliens.sprites():
             alien.rect.y += self.settings.fleet_drop_speed
         self.settings.fleet_direction *= -1
@@ -79,14 +102,17 @@ class AlienInvasion:
 
     def _update_bullets(self):
         self.bullets.update()
-        collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, True)
-        if not self.aliens:
-            self.bullets.remove()
-            self._create_fleet()
+        self._check_bullet_collision()
         # Remove o projétil quando antigir o limite da tela
         for bullet in self.bullets.copy():
             if bullet.rect.bottom <= 0:
                 self.bullets.remove(bullet)
+
+    def _check_bullet_collision(self):
+        collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, True)
+        if not self.aliens:
+            self.bullets.remove()
+            self._create_fleet()
 
     def _check_events(self):
         # Observa eventos de teclado e mouse
