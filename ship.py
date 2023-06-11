@@ -11,7 +11,7 @@ class Ship:
         self.image = pygame.image.load("imgs/ship5.png")
 
         #Redimensiona tamanho da imagem da espaçonave
-        self.image = pygame.transform.scale_by(self.image, 0.16)
+        self.image = pygame.transform.scale_by(self.image, 0.15)
         self.rect = self.image.get_rect()
 
         #Começa cada espaçonava nova no centro inferior da tela

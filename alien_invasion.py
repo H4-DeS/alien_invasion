@@ -9,6 +9,8 @@ from ship import Ship
 from bullet import Bullet
 from alien import Alien
 from button import Button
+from sounds import Sounds
+from scoreboard import ScoreBoard
 
 class AlienInvasion:
     def __init__(self):
@@ -18,6 +20,7 @@ class AlienInvasion:
         self.active_game = False
         self.stats = GameStats(self)
         self.screen = pygame.display.set_mode((self.settings.screen_width, self.settings.screen_height))
+        self.sb = ScoreBoard(self)
         self.button = Button(self, "PLAY")
         self.fullscreen_flag = False
         self.clock = pygame.time.Clock()
@@ -27,6 +30,8 @@ class AlienInvasion:
         self.aliens = pygame.sprite.Group()
         self._create_fleet()
         pygame.display.set_caption("Alien Invasion")
+        self.sound = Sounds()
+        self.sound.play_intro()
 
     def run_game(self):
         '''Inicia o loop principal do jogo'''
@@ -43,7 +48,7 @@ class AlienInvasion:
         alien = Alien(self)
         current_x = alien.rect.x
         current_y = alien.rect.y
-        while current_y < (self.settings.screen_height - 4*alien.rect.y):
+        while current_y < (self.settings.screen_height - 7*alien.rect.y):
             while current_x < (self.settings.screen_width - 2*alien.rect.x):
                 self._create_alien(current_x, current_y)
                 current_x += 2*alien.rect.x
@@ -70,6 +75,7 @@ class AlienInvasion:
                 self.stats.ships_left -= 1
             else:
                 self.active_game = False
+                pygame.mouse.set_visible(True)
             #Limpa a tela de projéteis e aliens restantes
             self.reset_game()
 
@@ -107,6 +113,7 @@ class AlienInvasion:
         #Desenha a Spacefighter
         self.ship.blitme()
         self.aliens.draw(self.screen)
+        self.sb.show_score()
         if not self.active_game:
             self.button.draw_button()
         # Deixa a tela desenhada mais recente visível
@@ -118,13 +125,24 @@ class AlienInvasion:
         # Remove o projétil quando antigir o limite da tela
         for bullet in self.bullets.copy():
             if bullet.rect.bottom <= 0:
+                self.stats.score += self.settings.miss_target_penalty
+                self.sb.prep_score()
                 self.bullets.remove(bullet)
 
     def _check_bullet_collision(self):
+
+        # if pygame.sprite.groupcollide(self.bullets, self.aliens, False, False):
+        #     self.sound.alien_catch()
         collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, True)
+        if collisions:
+            self.sound.alien_catch()
+            for collision in collisions.values():
+                self.stats.score += self.settings.alien_points*len(collision)
+            self.sb.prep_score()
         if not self.aliens:
-            self.bullets.remove()
+            self.bullets.empty()
             self._create_fleet()
+            self.settings.increase_game_speed()
 
     def _check_events(self):
         # Observa eventos de teclado e mouse
@@ -154,6 +172,9 @@ class AlienInvasion:
             self.ship.moving_left = True
         elif event.key == pygame.K_q:
             sys.exit()
+        elif event.key == pygame.K_p:
+            if self.active_game == False:
+                self._start_game()
         elif event.key == pygame.K_F10:
             if self.fullscreen_flag == True:
                 self.screen = pygame.display.set_mode((800, 600))
@@ -164,13 +185,23 @@ class AlienInvasion:
             self.settings.screen_width = self.screen.get_width()
             self.settings.screen_height = self.screen.get_height()
         elif event.key == pygame.K_SPACE:
-            if len(self.bullets) < self.settings.bullet_allowed:
+            if len(self.bullets) < self.settings.bullet_allowed and self.active_game == True:
+                self.sound.laser_fire.play()
                 self.new_bullet = Bullet(self)
                 self.bullets.add(self.new_bullet)
 
     def _check_play_button(self, mouse_pos):
-        if self.button.rect.collidepoint(mouse_pos):
-            self.active_game = True
+        if self.button.rect.collidepoint(mouse_pos) and not self.active_game:
+            self._start_game()
+
+    def _start_game(self):
+        self.settings.initialize_dynamic_settings()
+        self.sound.stop_intro()
+        self.sound.play_game()
+        sleep(1.5)
+        self.active_game = True
+        pygame.mouse.set_visible(False)
+
 
 if __name__ == '__main__':
     #Cria uma instância do jogo e executa o jogo
