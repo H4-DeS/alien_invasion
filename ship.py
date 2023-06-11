@@ -1,9 +1,11 @@
 import pygame
+from pygame.sprite import Sprite
 
-class Ship:
+class Ship(Sprite):
     '''Classe destinada a criar a espaçonave'''
 
     def __init__(self, ai_game):
+        self.super().__init__()
         #Inicializa a espaçonave e sua posição inicial
         self.screen = ai_game.screen
         self.screen_rect = ai_game.screen.get_rect()

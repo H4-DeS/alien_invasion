@@ -12,6 +12,7 @@ from button import Button
 from sounds import Sounds
 from scoreboard import ScoreBoard
 
+
 class AlienInvasion:
     def __init__(self):
         'Inicializa o jogo e cria recursos do jogo'
@@ -47,7 +48,7 @@ class AlienInvasion:
         #Cria a frota alienígena
         alien = Alien(self)
         current_x = alien.rect.x
-        current_y = alien.rect.y
+        current_y = alien.rect.y*2
         while current_y < (self.settings.screen_height - 7*alien.rect.y):
             while current_x < (self.settings.screen_width - 2*alien.rect.x):
                 self._create_alien(current_x, current_y)
@@ -68,6 +69,11 @@ class AlienInvasion:
         if pygame.sprite.spritecollideany(self.ship, self.aliens):
             self._ship_hit()
         self._check_aliens_bottom()
+
+    def check_high_score(self):
+        if self.stats.score > self.stats.high_score:
+            self.stats.high_score = self.stats.score
+            self.sb.prep_high_score()
 
     def _ship_hit(self):
             #Decrementa o número de naves disponíveis
@@ -92,6 +98,7 @@ class AlienInvasion:
             if alien.rect.bottom >= self.settings.screen_height:
                 self._ship_hit()
                 break
+
     def _check_edge(self):
         for alien in self.aliens.sprites():
             if alien.check_edge():
@@ -138,11 +145,15 @@ class AlienInvasion:
             self.sound.alien_catch()
             for collision in collisions.values():
                 self.stats.score += self.settings.alien_points*len(collision)
+                self.sb.prep_score()
+                self.check_high_score()
             self.sb.prep_score()
         if not self.aliens:
             self.bullets.empty()
             self._create_fleet()
             self.settings.increase_game_speed()
+            self.check_high_score()
+            self.stats.level += 1
 
     def _check_events(self):
         # Observa eventos de teclado e mouse
@@ -191,8 +202,11 @@ class AlienInvasion:
                 self.bullets.add(self.new_bullet)
 
     def _check_play_button(self, mouse_pos):
-        if self.button.rect.collidepoint(mouse_pos) and not self.active_game:
+        button_clicked = self.button.rect.collidepoint(mouse_pos)
+        if  button_clicked and not self.active_game:
             self._start_game()
+            self.stats.reset_stats()
+            self.sb.prep_score()
 
     def _start_game(self):
         self.settings.initialize_dynamic_settings()

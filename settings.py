@@ -23,6 +23,9 @@ class Settings:
         #Escala de aumento de velocidade do jogo
         self.speedup_scale = 1.2
 
+        #Escala de aumento da pontuação
+        self.scoreup_scale = 1.5
+
         #Inicializa os parâmetros dinâmicos
         self.initialize_dynamic_settings()
 
@@ -33,9 +36,10 @@ class Settings:
     def initialize_dynamic_settings(self):
         self.ship_speed = 1.5
         self.bullet_speed = 2.5
-        self.alien_speed = 1.0
+        self.alien_speed = 4.0
 
     def increase_game_speed(self):
         self.ship_speed *= self.speedup_scale
         self.bullet_speed *= self.speedup_scale
         self.alien_speed *= self.speedup_scale
+        self.alien_points *= self.scoreup_scale
