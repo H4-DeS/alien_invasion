@@ -27,6 +27,8 @@ class AlienInvasion:
             self._check_events()
             self._update_screen()
             self._update_bullets()
+            self._check_edge()
+            self._aliens_update()
             self.ship.position_update()
             self.clock.tick(60)
     def _create_fleet(self):
@@ -34,7 +36,7 @@ class AlienInvasion:
         alien = Alien(self)
         current_x = alien.rect.x
         current_y = alien.rect.y
-        while current_y < (self.settings.screen_height - 3*alien.rect.y):
+        while current_y < (self.settings.screen_height - 4*alien.rect.y):
             while current_x < (self.settings.screen_width - 2*alien.rect.x):
                 self._create_alien(current_x, current_y)
                 current_x += 2*alien.rect.x
@@ -47,6 +49,21 @@ class AlienInvasion:
         new_alien.rect.x = current_x
         new_alien.rect.y = current_y
         self.aliens.add(new_alien)
+
+    def _aliens_update(self):
+        self.alien.update()
+        collision = pygame.sprite.spritecollideany(self.ship, self.aliens, True, True)
+
+    def _check_edge(self):
+        for alien in self.aliens.sprites():
+            if alien.check_edge():
+                self._change_alien_direction()
+                break
+
+    def _change_alien_direction(self):
+        for alien in self.aliens.sprites():
+            alien.rect.y += self.settings.fleet_drop_speed
+        self.settings.fleet_direction *= -1
 
     def _update_screen(self):
         self.screen.fill(self.bg_color)
@@ -62,7 +79,11 @@ class AlienInvasion:
 
     def _update_bullets(self):
         self.bullets.update()
-        # Remove o projétil qunaod antigir o limite da tela
+        collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, True)
+        if not self.aliens:
+            self.bullets.remove()
+            self._create_fleet()
+        # Remove o projétil quando antigir o limite da tela
         for bullet in self.bullets.copy():
             if bullet.rect.bottom <= 0:
                 self.bullets.remove(bullet)
