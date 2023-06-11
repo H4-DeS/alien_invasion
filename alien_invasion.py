@@ -8,14 +8,17 @@ from game_stats import GameStats
 from ship import Ship
 from bullet import Bullet
 from alien import Alien
+from button import Button
 
 class AlienInvasion:
     def __init__(self):
         'Inicializa o jogo e cria recursos do jogo'
         pygame.init()
         self.settings = Settings()
+        self.active_game = False
         self.stats = GameStats(self)
         self.screen = pygame.display.set_mode((self.settings.screen_width, self.settings.screen_height))
+        self.button = Button(self, "PLAY")
         self.fullscreen_flag = False
         self.clock = pygame.time.Clock()
         self.bg_color = self.settings.bg_color
@@ -30,10 +33,10 @@ class AlienInvasion:
         while True:
             self._check_events()
             self._update_screen()
-            self._update_bullets()
-            self._check_edge()
-            self._aliens_update()
-            self.ship.position_update()
+            if self.active_game:
+                self._update_bullets()
+                self._aliens_update()
+                self.ship.position_update()
             self.clock.tick(60)
     def _create_fleet(self):
         #Cria a frota alienígena
@@ -56,20 +59,27 @@ class AlienInvasion:
 
     def _aliens_update(self):
         self.aliens.update()
+        self._check_edge()
         if pygame.sprite.spritecollideany(self.ship, self.aliens):
             self._ship_hit()
         self._check_aliens_bottom()
 
     def _ship_hit(self):
             #Decrementa o número de naves disponíveis
-            self.stats.ships_left -= 1
+            if self.stats.ships_left > 0:
+                self.stats.ships_left -= 1
+            else:
+                self.active_game = False
             #Limpa a tela de projéteis e aliens restantes
-            self.bullets.empty()
-            self.aliens.empty()
-            #Recria nova frota alien
-            self._create_fleet()
-            self.ship._center_ship()
-            sleep(0.5)
+            self.reset_game()
+
+    def reset_game(self):
+        self.bullets.empty()
+        self.aliens.empty()
+        # Recria nova frota alien
+        self._create_fleet()
+        self.ship._center_ship()
+        sleep(0.5)
 
     def _check_aliens_bottom(self):
         for alien in self.aliens.sprites():
@@ -97,6 +107,8 @@ class AlienInvasion:
         #Desenha a Spacefighter
         self.ship.blitme()
         self.aliens.draw(self.screen)
+        if not self.active_game:
+            self.button.draw_button()
         # Deixa a tela desenhada mais recente visível
         pygame.display.flip()
 
@@ -125,6 +137,9 @@ class AlienInvasion:
 
             elif event.type == pygame.KEYUP:
                 self._key_up_events(event)
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                self._check_play_button(mouse_pos)
 
     def _key_up_events(self, event):
         if event.key == pygame.K_RIGHT:
@@ -141,19 +156,21 @@ class AlienInvasion:
             sys.exit()
         elif event.key == pygame.K_F10:
             if self.fullscreen_flag == True:
-                self.screen = pygame.display.set_mode((800,600))
+                self.screen = pygame.display.set_mode((800, 600))
                 self.fullscreen_flag = False
             elif self.fullscreen_flag == False:
-                self.screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
+                self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
                 self.fullscreen_flag = True
             self.settings.screen_width = self.screen.get_width()
             self.settings.screen_height = self.screen.get_height()
-            self.ship = Ship(self)
         elif event.key == pygame.K_SPACE:
             if len(self.bullets) < self.settings.bullet_allowed:
                 self.new_bullet = Bullet(self)
                 self.bullets.add(self.new_bullet)
 
+    def _check_play_button(self, mouse_pos):
+        if self.button.rect.collidepoint(mouse_pos):
+            self.active_game = True
 
 if __name__ == '__main__':
     #Cria uma instância do jogo e executa o jogo
