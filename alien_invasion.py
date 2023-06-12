@@ -11,6 +11,7 @@ from alien import Alien
 from button import Button
 from sounds import Sounds
 from scoreboard import ScoreBoard
+from load_stats import LoadFile
 
 
 class AlienInvasion:
@@ -22,6 +23,9 @@ class AlienInvasion:
         self.stats = GameStats(self)
         self.screen = pygame.display.set_mode((self.settings.screen_width, self.settings.screen_height))
         self.sb = ScoreBoard(self)
+        self.load_sb = LoadFile(self)
+        self.load_sb.load_score()
+        self.sb.prep_high_score()
         self.button = Button(self, "PLAY")
         self.fullscreen_flag = False
         self.clock = pygame.time.Clock()
@@ -84,6 +88,7 @@ class AlienInvasion:
                 pygame.mouse.set_visible(True)
             #Limpa a tela de projéteis e aliens restantes
             self.reset_game()
+            self.sb.prep_ships()
 
     def reset_game(self):
         self.bullets.empty()
@@ -154,6 +159,7 @@ class AlienInvasion:
             self.settings.increase_game_speed()
             self.check_high_score()
             self.stats.level += 1
+            self.sb.prep_level()
 
     def _check_events(self):
         # Observa eventos de teclado e mouse
@@ -182,6 +188,7 @@ class AlienInvasion:
         elif event.key == pygame.K_LEFT:
             self.ship.moving_left = True
         elif event.key == pygame.K_q:
+            self.load_sb.save_score()
             sys.exit()
         elif event.key == pygame.K_p:
             if self.active_game == False:
@@ -207,12 +214,11 @@ class AlienInvasion:
             self._start_game()
             self.stats.reset_stats()
             self.sb.prep_score()
-
+            self.sb.prep_ships()
     def _start_game(self):
         self.settings.initialize_dynamic_settings()
         self.sound.stop_intro()
         self.sound.play_game()
-        sleep(1.5)
         self.active_game = True
         pygame.mouse.set_visible(False)
 
