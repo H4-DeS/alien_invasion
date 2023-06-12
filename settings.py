@@ -1,3 +1,6 @@
+import pygame.image
+
+
 class Settings:
     '''Classe para armazenar as configurações do jogo'''
     def __init__(self):
@@ -6,6 +9,7 @@ class Settings:
         self.screen_width = 800
         self.screen_height = 640
         self.bg_color = (240,240,240)
+        self.bg_image = pygame.image.load("imgs/spacefield.jpg")
 
         #Configuração da spacefighter
         self.ships_limit = 3
@@ -14,7 +18,7 @@ class Settings:
         self.bullet_width = 2
         self.bullet_height = 15
         self.bullet_allowed = 3
-        self.bullet_color = (60,60,60)
+        self.bullet_color = (0,0,250)
 
         #Configurações da frota alienígena
         self.fleet_direction = 1
@@ -31,7 +35,7 @@ class Settings:
 
         #Configuração de pontuação
         self.alien_points = 50
-        self.miss_target_penalty = -5
+        self.miss_target_penalty = 15
 
     def initialize_dynamic_settings(self):
         self.ship_speed = 1.5

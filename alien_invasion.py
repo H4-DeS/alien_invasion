@@ -22,6 +22,7 @@ class AlienInvasion:
         self.active_game = False
         self.stats = GameStats(self)
         self.screen = pygame.display.set_mode((self.settings.screen_width, self.settings.screen_height))
+        self.screen_rect = self.screen.get_rect()
         self.sb = ScoreBoard(self)
         self.load_sb = LoadFile(self)
         self.load_sb.load_score()
@@ -117,7 +118,8 @@ class AlienInvasion:
         self.settings.fleet_direction *= -1
 
     def _update_screen(self):
-        self.screen.fill(self.bg_color)
+        #self.screen.fill(self.bg_color)
+        self.screen.blit(self.settings.bg_image, self.screen_rect)
         #Desenha o projétil
         for bullet in self.bullets.sprites():
             bullet.draw_bullet()
@@ -137,7 +139,7 @@ class AlienInvasion:
         # Remove o projétil quando antigir o limite da tela
         for bullet in self.bullets.copy():
             if bullet.rect.bottom <= 0:
-                self.stats.score += self.settings.miss_target_penalty
+                self.stats.score -= self.settings.miss_target_penalty
                 self.sb.prep_score()
                 self.bullets.remove(bullet)
 
