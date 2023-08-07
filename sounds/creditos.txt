@@ -1,5 +1,5 @@
 Image - ALien Ship - Alex Pineda
 Image - Spacefighter - Skorpio
 Intro_Music - Boss Battle - Mega Pixel Music Lab 
-laser_fire - Devin Watson (dklon)
-explosion_sounds - Luke.RUSTLTD
+Sounds - laser_fire, start_engine - Devin Watson (dklon)
+Sounds - explosion_sounds - Luke.RUSTLTD

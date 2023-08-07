@@ -1,4 +1,11 @@
-import sys
+import os, sys
+
+dirpath = os.getcwd()
+sys.path.append(dirpath)
+
+if getattr(sys, "frozen", False):
+    os.chdir(sys._MEIPASS)
+
 from time import sleep
 
 import pygame
@@ -212,7 +219,7 @@ class AlienInvasion:
 
     def _check_play_button(self, mouse_pos):
         button_clicked = self.button.rect.collidepoint(mouse_pos)
-        if  button_clicked and not self.active_game:
+        if button_clicked and not self.active_game:
             self._start_game()
             self.stats.reset_stats()
             self.sb.prep_score()
